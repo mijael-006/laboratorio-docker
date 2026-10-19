@@ -1,20 +1,21 @@
 name: CI DB App
 
 on:
-push:
+  push:
 
 jobs:
-build:
-runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-steps:
-- uses: actions/checkout@v3
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
 
-- name: Ejecutar Docker Compose
-run: docker-compose up -d
+      - name: Ejecutar Docker Compose
+        run: docker compose up -d
 
-- name: Esperar servicios
-run: sleep 20
+      - name: Esperar servicios
+        run: sleep 20
 
-- name: Verificar contenedores
-run: docker ps
+      - name: Verificar contenedores
+        run: docker ps
