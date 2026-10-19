@@ -1,0 +1,127 @@
+Objetivo del laboratorio
+ 
+Crear un sistema donde:
+
+Se levanta MySQL automáticamente
+Se crean tablas automáticamente
+Se ejecuta una app Node
+Todo se valida dentro de un pipeline
+Requisitos
+Docker
+GitHub
+Repositorio previo
+Node.js
+PARTE 1: Preparar proyecto
+Paso 1: Crear carpeta
+ 
+mkdir ci-db-app
+cd ci-db-app
+ 
+PARTE 2: Crear script SQL
+Paso 2: Crear archivo init.sql
+ 
+CREATE TABLE usuarios (
+id INT AUTO_INCREMENT PRIMARY KEY,
+nombre VARCHAR(50)
+);
+
+INSERT INTO usuarios (nombre) VALUES ('ISUR');
+ 
+PARTE 3: Crear aplicación Node
+Paso 3: app.js
+const express = require('express');
+const mysql = require('mysql2');
+
+const app = express();
+
+const connection = mysql.createConnection({
+host: 'db',
+user: 'root',
+password: 'root',
+database: 'isurdb'
+});
+
+app.get('/', (req, res) => {
+connection.query('SELECT * FROM usuarios', (err, results) => {
+if (err) return res.send("Error DB");
+res.send(results);
+});
+});
+
+app.listen(3000);
+PARTE 4: Dockerfile
+Paso 4
+ 
+FROM node:18
+
+WORKDIR /app
+
+COPY package.json .
+RUN npm install
+
+COPY . .
+
+CMD ["node", "app.js"]
+ 
+PARTE 5: Docker Compose
+Paso 5
+ 
+version: '3.8'
+
+services:
+
+web:
+build: .
+ports:
+- "3000:3000"
+depends_on:
+- db
+
+db:
+image: mysql:5.7
+environment:
+MYSQL_ROOT_PASSWORD: root
+MYSQL_DATABASE: isurdb
+volumes:
+- ./init.sql:/docker-entrypoint-initdb.d/init.sql
+ 
+PARTE 6: Pipeline CI/CD
+Paso 6: ci.yml
+ 
+name: CI DB App
+
+on:
+push:
+
+jobs:
+build:
+runs-on: ubuntu-latest
+
+steps:
+- uses: actions/checkout@v3
+
+- name: Ejecutar Docker Compose
+run: docker-compose up -d
+
+- name: Esperar servicios
+run: sleep 20
+
+- name: Verificar contenedores
+run: docker ps
+ 
+PARTE 7: Ejecutar
+Paso 7
+git add .
+git commit -m "CI con DB"
+git push
+Paso 8: Ver en GitHub Actions
+Evidencia: pipeline ejecutado
+
+ENTREGABLES
+Nº	Evidencia
+1	init.sql
+2	docker-compose.yml
+3	Aplicación funcionando
+4	Pipeline ejecutado
+5	Logs correctos
+ 
